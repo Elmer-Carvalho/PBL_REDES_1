@@ -1,0 +1,17 @@
+Requerimentos:
+- Comunicação entre Veículos e Pontos de Recarga (Tempo Real).
+- Quando a bateria do veícuo atingir um ponto crítico, o aplicativo do cliente
+deve mostrar onde recarregar (Deve considerar: Ocupação e Distância).
+- A distribuição dos veículos deve reduzir o tempo de espera estimado.
+- Realizar reserva antes da chegada do veículo e liberar após carregamento 
+feito, mas reservas podem ser feitas enquanto isso.
+- Os valores das contas devem ser registrados na conta do cliente, 
+possibilitando que ele pague por PIX ou outro meio de pagamento depois.
+
+Ideias:
+- Usar um sistema de coordenadas X e Y para distância e movimento.
+- Usar Folium para Plotar um mapa com as posições do veículo e postos
+de modo período (Ex: a cada 5 segundos).
+- Usar geopy para cálculo de distâncias.
+- Usar sqlite3 para armazenar dados.
+- Usar OSMnx + NetworkX para criar grafos viários e calcular rotas.
