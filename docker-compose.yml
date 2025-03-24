@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile-server
+    ports:
+      - "5555:5555"
+    networks:
+      - app-network
+    restart: always
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile-client
+    networks:
+      - app-network
+    stdin_open: true
+    tty: true
+    depends_on:
+      - server
+
+networks:
+  app-network:
+    driver: bridge
