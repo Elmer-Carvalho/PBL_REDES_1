@@ -1,8 +1,6 @@
 class Electric_Vehicles:
 
     def __init__(self, latitude, longitude, battery):
-        self.latitude = latitude
-        self.longitude = longitude
         self.battery = battery
 
 
