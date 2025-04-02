@@ -27,8 +27,10 @@ class UserManager:
         username = data.get("username")
         password = data.get("password")
         car_model = data.get("car_model")
+        initial_battery = data.get("initial_battery")  # Novo campo
 
-        if not all([username, password, car_model]):
+        # Validação dos campos obrigatórios
+        if not all([username, password, car_model, initial_battery is not None]):
             return {
                 "type": "register",
                 "request_id": request["request_id"],
@@ -36,7 +38,8 @@ class UserManager:
                 "status": {"code": 1, "message": "Campos obrigatórios ausentes"},
                 "timestamp": get_current_timestamp()
             }
-        
+
+        # Verifica se o modelo de carro é válido
         if car_model not in self.car_models:
             return {
                 "type": "register",
@@ -46,6 +49,21 @@ class UserManager:
                 "timestamp": get_current_timestamp()
             }
 
+        # Validação do initial_battery
+        try:
+            initial_battery = float(initial_battery)
+            if initial_battery < 0 or initial_battery > self.car_models[car_model]["battery_capacity"]:
+                raise ValueError
+        except (ValueError, TypeError):
+            return {
+                "type": "register",
+                "request_id": request["request_id"],
+                "data": {},
+                "status": {"code": 1, "message": "Valor de bateria inicial inválido (deve ser um número entre 0 e capacidade máxima)"},
+                "timestamp": get_current_timestamp()
+            }
+
+        # Verifica se o usuário já existe
         filepath = self.get_user_filepath(username)
         if os.path.exists(filepath):
             return {
@@ -56,9 +74,13 @@ class UserManager:
                 "timestamp": get_current_timestamp()
             }
 
+        # Criação do carro com bateria inicial
         car_id = f"{car_model[:3].upper()}{hashlib.sha256(username.encode()).hexdigest()[:3]}"
         car_data = self.car_models[car_model].copy()
         car_data["car_id"] = car_id
+        car_data["current_battery"] = initial_battery  # Adiciona a bateria inicial
+
+        # Dados do usuário
         user_data = {
             "username": username,
             "password_hash": hashlib.sha256(password.encode()).hexdigest(),
