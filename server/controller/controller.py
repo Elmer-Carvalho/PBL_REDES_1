@@ -1,7 +1,7 @@
 from handlers import auth
 
 handlers = {
-    ...
+    "login": auth.login
 }
 
 required_fields = ["type", "request_id", "data", "status", "timestamp"]
