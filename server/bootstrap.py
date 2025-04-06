@@ -34,7 +34,7 @@ def check_and_create_stations(csv_file="server\\data\\feira_de_santana_stations.
         print("Todos os arquivos das estações estão presentes.")
 
 
-def initialize_datas(car_models_file="server\\data\\car_models.json", stations_file="server\\data\\feira_de_santana_stations.csv"):
+def initialize_data(car_models_file="server\\data\\car_models.json", stations_file="server\\data\\feira_de_santana_stations.csv"):
     """Carrega dados iniciais na memória ao iniciar o servidor."""
 
     # Carrega modelos de carros
