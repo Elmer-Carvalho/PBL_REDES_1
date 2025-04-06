@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile-server
     ports:
-      - "5555:5555"
+      - "8888:8888"
     networks:
       - app-network
     restart: always
