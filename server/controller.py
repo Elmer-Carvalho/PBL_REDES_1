@@ -1,17 +1,19 @@
 import json
 from handlers import auth
 from handlers import start
+from handlers import trip
 from utils.time_utils import get_current_timestamp
 import bootstrap
 
 datas = bootstrap.initialize_datas()
 start_manager = start.StartManager(car_models=datas["car_models"], station_models=datas["station_models"])
 auth_manager = auth.AuthManager(car_models=datas["car_models"])
+trip_manager = trip.TripManager()
 
 handlers = {
     "START": start_manager.handle_start,
     "LOGIN": auth_manager.handle_login,
-    "NAVIGATION": ...,
+    "NAVIGATION": trip_manager.handle_navigation,
     "SELECTION_STATION": ...,
     "PAYMENT": ...
 }
