@@ -1,143 +1,91 @@
 import os
 import json
-import hashlib
+import uuid
 from utils.time_utils import get_current_timestamp
+from models.electric_car import ElectricCar
 
-class UserManager:
-    def __init__(self, users_dir="data/users", car_models_file="data/car_models.json"):
+class AuthManager:
+    def __init__(self, users_dir="server/data/users", car_models=None):
+        """Inicializa com diretório de usuários e modelos de carros pré-carregados."""
         self.users_dir = users_dir
-        self.car_models_file = car_models_file
-        self.car_models = self.load_car_models()
-        os.makedirs(users_dir, exist_ok=True)
+        self.car_models = car_models if car_models is not None else {}
+        os.makedirs(self.users_dir, exist_ok=True)
 
-    def load_car_models(self):
-        """Carrega os modelos de carros do arquivo JSON."""
-        if not os.path.exists(self.car_models_file):
-            raise FileNotFoundError(f"Arquivo de modelos de carros {self.car_models_file} não encontrado")
-        with open(self.car_models_file, "r", encoding="utf-8") as f:
-            return json.load(f)
+    def handle_login(self, request):
+        """Processa o login, criando um novo usuário se necessário."""
+        data = request["data"]
+        username = data.get("user_name")
+        selected_car = data.get("selected_car")
+        battery_car = data.get("battery_car")
 
-    def get_user_filepath(self, username):
-        """Gera o filepath a partir do hash do username."""
-        user_hash = hashlib.sha256(username.encode()).hexdigest()
-        return os.path.join(self.users_dir, f"{user_hash}.json")
-
-    def register(self, request):
-        data = request["data"]["content"]
-        username = data.get("username")
-        password = data.get("password")
-        car_model = data.get("car_model")
-        initial_battery = data.get("initial_battery")  # Novo campo
-
-        # Validação dos campos obrigatórios
-        if not all([username, password, car_model, initial_battery is not None]):
+        # Validação dos campos
+        if not all([username, selected_car, battery_car is not None]):
             return {
-                "type": "register",
-                "request_id": request["request_id"],
+                "type": "LOGIN",
                 "data": {},
-                "status": {"code": 1, "message": "Campos obrigatórios ausentes"},
+                "status": {"code": 400, "message": "Campos obrigatórios ausentes (user_name, selected_car, battery_car)"},
                 "timestamp": get_current_timestamp()
             }
 
-        # Verifica se o modelo de carro é válido
-        if car_model not in self.car_models:
+        # Validação do selected_car
+        if selected_car not in self.car_models:
             return {
-                "type": "register",
-                "request_id": request["request_id"],
+                "type": "LOGIN",
                 "data": {},
-                "status": {"code": 1, "message": "Modelo de carro inválido"},
+                "status": {"code": 400, "message": f"Modelo de carro '{selected_car}' inválido"},
                 "timestamp": get_current_timestamp()
             }
 
-        # Validação do initial_battery
+        # Validação da bateria
         try:
-            initial_battery = float(initial_battery)
-            if initial_battery < 0 or initial_battery > self.car_models[car_model]["battery_capacity"]:
+            battery_percentage = float(battery_car)
+            if not 0 <= battery_percentage <= 100:  # Ajustado para incluir 0%
                 raise ValueError
         except (ValueError, TypeError):
             return {
-                "type": "register",
-                "request_id": request["request_id"],
+                "type": "LOGIN",
                 "data": {},
-                "status": {"code": 1, "message": "Valor de bateria inicial inválido (deve ser um número entre 0 e capacidade máxima)"},
+                "status": {"code": 400, "message": "battery_car deve ser um número entre 0 e 100"},
                 "timestamp": get_current_timestamp()
             }
 
-        # Verifica se o usuário já existe
-        filepath = self.get_user_filepath(username)
-        if os.path.exists(filepath):
-            return {
-                "type": "register",
-                "request_id": request["request_id"],
-                "data": {},
-                "status": {"code": 1, "message": "Usuário já existe"},
-                "timestamp": get_current_timestamp()
-            }
+        # Gera um user_id único com UUID
+        user_id = str(uuid.uuid4())
+        filepath = os.path.join(self.users_dir, f"{user_id}.json")
 
-        # Criação do carro com bateria inicial
-        car_id = f"{car_model[:3].upper()}{hashlib.sha256(username.encode()).hexdigest()[:3]}"
-        car_data = self.car_models[car_model].copy()
-        car_data["car_id"] = car_id
-        car_data["current_battery"] = initial_battery  # Adiciona a bateria inicial
+        # Cria o objeto ElectricCar
+        car_data = self.car_models[selected_car].copy()
+        car = ElectricCar(
+            brand=car_data["brand"],
+            model=car_data["model"],
+            battery_capacity=car_data["battery_capacity"],
+            energy_consumption=car_data["energy_consumption"],
+            max_speed=car_data["max_speed"],
+            battery_percentage=battery_percentage
+        )
 
-        # Dados do usuário
+        # Estrutura do arquivo do usuário
         user_data = {
-            "username": username,
-            "password_hash": hashlib.sha256(password.encode()).hexdigest(),
-            "car": car_data
+            "user_id": user_id,
+            "user_name": username,
+            "user_car": {
+                "brand": car.brand,
+                "model": car.model,
+                "battery_capacity": car.battery_capacity,
+                "current_battery": car.current_battery,
+                "energy_consumption": car.energy_consumption,
+                "max_speed": car.max_speed
+            }
         }
+
+        # Salva o arquivo
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(user_data, f, indent=4)
-        
+
+        # Resposta ao cliente
         return {
-            "type": "register",
-            "request_id": request["request_id"],
-            "data": {"car_id": car_id},
-            "status": {"code": 0, "message": "Cadastro realizado com sucesso"},
+            "type": "LOGIN",
+            "data": {"user_id": user_id},
+            "status": {"code": 200, "message": "Sucesso"},
             "timestamp": get_current_timestamp()
         }
-
-    def login(self, request):
-        data = request["data"]["content"]
-        username = data.get("username")
-        password = data.get("password")
-
-        if not all([username, password]):
-            return {
-                "type": "login",
-                "request_id": request["request_id"],
-                "data": {},
-                "status": {"code": 1, "message": "Campos obrigatórios ausentes"},
-                "timestamp": get_current_timestamp()
-            }
-
-        filepath = self.get_user_filepath(username)
-        if not os.path.exists(filepath):
-            return {
-                "type": "login",
-                "request_id": request["request_id"],
-                "data": {},
-                "status": {"code": 1, "message": "Usuário não encontrado"},
-                "timestamp": get_current_timestamp()
-            }
-
-        with open(filepath, "r", encoding="utf-8") as f:
-            user = json.load(f)
-        
-        if user["password_hash"] == hashlib.sha256(password.encode()).hexdigest():
-            return {
-                "type": "login",
-                "request_id": request["request_id"],
-                "data": {"car_id": user["car"]["car_id"]},
-                "status": {"code": 0, "message": "Login bem-sucedido"},
-                "timestamp": get_current_timestamp()
-            }
-        return {
-            "type": "login",
-            "request_id": request["request_id"],
-            "data": {},
-            "status": {"code": 1, "message": "Senha incorreta"},
-            "timestamp": get_current_timestamp()
-        }
-
-user_manager = UserManager()

@@ -1,18 +1,26 @@
 class ElectricCar:
-    def __init__(self, brand, model, battery_capacity, current_battery, energy_consumption, max_speed, car_id):
+    def __init__(self, brand, model, battery_capacity, energy_consumption, max_speed, battery_percentage=None, current_battery=None):
         """Inicializa um carro elétrico com suas propriedades e estado inicial."""
         if battery_capacity < 0 or energy_consumption <= 0 or max_speed <= 0:
             raise ValueError("Capacidade, consumo e velocidade máxima devem ser positivos")
-        if current_battery < 0 or current_battery > battery_capacity:
-            raise ValueError("Bateria atual deve estar entre 0 e a capacidade máxima")
 
         self.brand = brand
         self.model = model
         self.battery_capacity = battery_capacity  # kWh (máxima)
-        self.current_battery = current_battery    # kWh (atual)
         self.energy_consumption = energy_consumption  # kWh/km
         self.max_speed = max_speed  # km/h
-        self.car_id = car_id
+
+        # Define current_battery com base em battery_percentage ou valor direto
+        if battery_percentage is not None:
+            if not 0 <= battery_percentage <= 100:
+                raise ValueError("Porcentagem de bateria deve estar entre 0 e 100")
+            self.current_battery = (battery_percentage / 100) * battery_capacity
+        elif current_battery is not None:
+            if not 0 <= current_battery <= battery_capacity:
+                raise ValueError("Bateria atual deve estar entre 0 e a capacidade máxima")
+            self.current_battery = current_battery
+        else:
+            raise ValueError("Deve fornecer battery_percentage ou current_battery")
 
     def current_range(self):
         """Retorna a autonomia atual em km com base na bateria atual."""
@@ -44,4 +52,4 @@ class ElectricCar:
         energy_used = distance * self.energy_consumption
         self.current_battery = max(0, self.current_battery - energy_used)
         return self.current_battery > 0
-        
+    
