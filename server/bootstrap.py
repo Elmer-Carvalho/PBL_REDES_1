@@ -34,5 +34,35 @@ def check_and_create_stations(csv_file="server\\data\\feira_de_santana_stations.
         print("Todos os arquivos das estações estão presentes.")
 
 
+def initialize_datas(car_models_file="server\\data\\car_models.json", stations_file="server\\data\\feira_de_santana_stations.csv"):
+    """Carrega dados iniciais na memória ao iniciar o servidor."""
+
+    # Carrega modelos de carros
+    if not os.path.exists(car_models_file):
+        raise FileNotFoundError(f"Arquivo {car_models_file} não encontrado")
+    with open(car_models_file, "r", encoding="utf-8") as f:
+        car_models = json.load(f)
+
+    # Carrega postos de carregamento
+    if not os.path.exists(stations_file):
+        raise FileNotFoundError(f"Arquivo {stations_file} não encontrado")
+    stations = {}
+    with open(stations_file, "r", encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter=";")
+        for row in reader:
+            station_id = row["id"]
+            stations[station_id] = {
+                "name_station": row["nomeDoPosto"],
+                "address": row["endereço"],
+                "latitude": row["latitude"],
+                "longitude": row["longitude"],
+            }
+
+    return {
+        "car_models": car_models,
+        "station_models": stations
+    }
+
+
 if __name__ == "__main__":
     check_and_create_stations()
