@@ -7,6 +7,7 @@ from utils.time_utils import get_current_timestamp
 import bootstrap
 
 # Carrega dados na inicialização
+bootstrap.check_and_create_stations()
 data = bootstrap.initialize_data()
 start_manager = StartManager(car_models=data["car_models"], station_models=data["station_models"])
 auth_manager = AuthManager(car_models=data["car_models"])
