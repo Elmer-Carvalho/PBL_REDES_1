@@ -5,7 +5,7 @@ from models.electric_car import ElectricCar
 from utils.time_utils import get_current_timestamp
 
 class StationManager:
-    def __init__(self, users_dir="data/users", stations_dir="data/stations"):
+    def __init__(self, users_dir="server/data/users", stations_dir="server/data/stations"):
         """Inicializa com diretórios de usuários e postos, e locks por recurso."""
         self.users_dir = users_dir
         self.stations_dir = stations_dir
@@ -55,7 +55,7 @@ class StationManager:
 
     def get_station_data(self, station_id):
         """Carrega os dados do posto a partir do arquivo JSON com lock."""
-        filepath = os.path.join(self.stations_dir, f"{station_id}.json")
+        filepath = os.path.join(self.stations_dir, f"station_{station_id}.json")
         if not os.path.exists(filepath):
             return None
 
@@ -260,7 +260,7 @@ class StationManager:
             }
 
         # Caminho do arquivo do posto
-        filepath = os.path.join(self.stations_dir, f"{id_station}.json")
+        filepath = os.path.join(self.stations_dir, f"station_{id_station}.json")
         if not os.path.exists(filepath):
             return {
                 "type": "PAYMENT",
