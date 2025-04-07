@@ -139,5 +139,4 @@ def populate_clients(num_clients=150, users_dir="data/users", stations_dir="data
             print(f"Cliente {user_id} não alocado: todos os postos estão lotados")
 
 if __name__ == "__main__":
-    check_and_create_stations()
     populate_clients()

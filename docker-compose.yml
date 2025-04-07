@@ -11,16 +11,6 @@ services:
       - app-network
     restart: always
 
-  client:
-    build:
-      context: .
-      dockerfile: Dockerfile-client
-    networks:
-      - app-network
-    stdin_open: true
-    tty: true
-    depends_on:
-      - server
 
 networks:
   app-network:

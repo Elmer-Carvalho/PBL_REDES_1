@@ -8,8 +8,6 @@ import bootstrap
 
 # Carrega dados na inicialização
 bootstrap.check_and_create_stations()
-bootstrap.populate_clients()  # Popula 150 clientes e aloca em postos
-
 data = bootstrap.initialize_data()
 
 start_manager = StartManager(car_models=data["car_models"], station_models=data["station_models"])
