@@ -8,7 +8,10 @@ import bootstrap
 
 # Carrega dados na inicialização
 bootstrap.check_and_create_stations()
+bootstrap.populate_clients()
+
 data = bootstrap.initialize_data()
+
 start_manager = StartManager(car_models=data["car_models"], station_models=data["station_models"])
 auth_manager = AuthManager(car_models=data["car_models"])
 trip_manager = TripManager()
