@@ -5,7 +5,7 @@ import uuid
 import random
 from datetime import datetime, timezone
 
-def check_and_create_stations(csv_file="server/data/feira_de_santana_stations.csv", output_folder="server/data/stations"):
+def check_and_create_stations(csv_file="data/feira_de_santana_stations.csv", output_folder="data/stations"):
     os.makedirs(output_folder, exist_ok=True)
     expected_ids = set()
     with open(csv_file, "r", encoding="utf-8") as f:
@@ -36,7 +36,7 @@ def check_and_create_stations(csv_file="server/data/feira_de_santana_stations.cs
     else:
         print("Todos os arquivos das estações estão presentes.")
 
-def initialize_data(car_models_file="server/data/car_models.json", stations_file="server/data/feira_de_santana_stations.csv"):
+def initialize_data(car_models_file="data/car_models.json", stations_file="data/feira_de_santana_stations.csv"):
     """Carrega dados iniciais na memória ao iniciar o servidor."""
     if not os.path.exists(car_models_file):
         raise FileNotFoundError(f"Arquivo {car_models_file} não encontrado")
@@ -62,7 +62,7 @@ def initialize_data(car_models_file="server/data/car_models.json", stations_file
         "station_models": stations
     }
 
-def populate_clients(num_clients=150, users_dir="server/data/users", stations_dir="server/data/stations", car_models_file="server/data/car_models.json"):
+def populate_clients(num_clients=150, users_dir="data/users", stations_dir="data/stations", car_models_file="data/car_models.json"):
     """Cria clientes e os aloca aleatoriamente em postos de carregamento."""
     # Cria diretórios se não existirem
     os.makedirs(users_dir, exist_ok=True)
