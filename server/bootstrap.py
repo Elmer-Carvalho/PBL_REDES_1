@@ -5,17 +5,29 @@ import uuid
 import random
 from datetime import datetime, timezone
 
-def check_and_create_stations(csv_file="data/feira_de_santana_stations.csv", output_folder="data/stations"):
+def check_and_create_stations(csv_file="server/data/feira_de_santana_stations.csv", output_folder="server/data/stations"):
     os.makedirs(output_folder, exist_ok=True)
     expected_ids = set()
+    
+    # Pega os IDs esperados do CSV
     with open(csv_file, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f, delimiter=";")
         for row in reader:
             expected_ids.add(int(row["id"]))
     
-    existing_files = {int(f.split("_")[1].split(".")[0]) for f in os.listdir(output_folder) if f.startswith("station_") and f.endswith(".json")}
-    missing_ids = expected_ids - existing_files
+    # Verifica os arquivos já existentes
+    existing_files = {
+        int(f.split("_")[1].split(".")[0])
+        for f in os.listdir(output_folder)
+        if f.startswith("station_") and f.endswith(".json")
+    }
     
+    missing_ids = expected_ids - existing_files
+
+    if not existing_files and os.listdir(output_folder):
+        print("Aviso: A pasta de estações contém arquivos inesperados, mas não os arquivos padrão. Nada será recriado.")
+        return
+
     if missing_ids:
         print(f"Arquivos faltantes detectados: {missing_ids}")
         with open(csv_file, "r", encoding="utf-8") as f:
@@ -30,13 +42,14 @@ def check_and_create_stations(csv_file="data/feira_de_santana_stations.csv", out
                         "vehicles": {}
                     }
                     filepath = os.path.join(output_folder, f"station_{station_id}.json")
-                    with open(filepath, "w", encoding="utf-8") as json_file:
-                        json.dump(station_data, json_file, indent=4)
-                    print(f"Recriado: {filepath}")
+                    if not os.path.exists(filepath):
+                        with open(filepath, "w", encoding="utf-8") as json_file:
+                            json.dump(station_data, json_file, indent=4)
+                        print(f"Arquivo criado: {filepath}")
     else:
         print("Todos os arquivos das estações estão presentes.")
 
-def initialize_data(car_models_file="data/car_models.json", stations_file="data/feira_de_santana_stations.csv"):
+def initialize_data(car_models_file="server/data/car_models.json", stations_file="server/data/feira_de_santana_stations.csv"):
     """Carrega dados iniciais na memória ao iniciar o servidor."""
     if not os.path.exists(car_models_file):
         raise FileNotFoundError(f"Arquivo {car_models_file} não encontrado")
@@ -62,7 +75,7 @@ def initialize_data(car_models_file="data/car_models.json", stations_file="data/
         "station_models": stations
     }
 
-def populate_clients(num_clients=150, users_dir="data/users", stations_dir="data/stations", car_models_file="data/car_models.json"):
+def populate_clients(num_clients=150, users_dir="server/data/users", stations_dir="server/data/stations", car_models_file="server/data/car_models.json"):
     """Cria clientes e os aloca aleatoriamente em postos de carregamento."""
     # Cria diretórios se não existirem
     os.makedirs(users_dir, exist_ok=True)
@@ -139,4 +152,5 @@ def populate_clients(num_clients=150, users_dir="data/users", stations_dir="data
             print(f"Cliente {user_id} não alocado: todos os postos estão lotados")
 
 if __name__ == "__main__":
+    check_and_create_stations()
     populate_clients()

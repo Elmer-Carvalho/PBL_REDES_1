@@ -35,6 +35,7 @@ def route_request(request: dict) -> dict:
         }
 
     if request["type"] in handlers:
+        print("REQUEST: " + request["type"])
         return handlers[request["type"]](request)
 
     return {

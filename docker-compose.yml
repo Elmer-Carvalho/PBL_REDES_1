@@ -2,6 +2,8 @@ version: "3.9"
 
 services:
   server:
+    tty: true
+    stdin_open: true
     build:
       context: .
       dockerfile: Dockerfile-server
@@ -10,8 +12,29 @@ services:
     networks:
       - app-network
     restart: always
+    volumes:
+      - dados-volume:/app/server/data
+    command: ["python", "-u", "server/server.py"]
 
+  server-with-bootstrap:
+    tty: true
+    stdin_open: true
+    build:
+      context: .
+      dockerfile: Dockerfile-server
+    ports:
+      - "8889:8888"
+    networks:
+      - app-network
+    restart: always
+    volumes:
+      - dados-volume:/app/server/data
+    command: >
+      sh -c "python -u server/bootstrap.py && python -u server/server.py"
 
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  dados-volume:
