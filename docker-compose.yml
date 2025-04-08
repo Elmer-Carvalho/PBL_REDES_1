@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile-server
     ports:
-      - "8889:8888"
+      - "8888:8888"
     networks:
       - app-network
     restart: always
